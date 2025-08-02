@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Prediction Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a6ba10 0%, #c10b50 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4e2ed1 0%, #4bb9c6 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .header p {
+            font-size: 1.5em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-row {
+            gap: 20px;
+            margin-top: 20px;
+            display:contents;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group.full-width {
+            flex: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .predict-btn {
+            background: linear-gradient(135deg, #b1024e 0%, #6607c5 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-container.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            display: block;
+        }
+
+        .result-container.error {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+            color: white;
+            display: block;
+        }
+
+        .salary-amount {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .input-hint {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .example-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .example-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .example-btn {
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .example-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> Salary Prediction Tool</h1>
+            <p>Get accurate salary predictions </p>
+        </div>
+        
+        <div class="form-container">
+            <form id="salaryForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" min="18" max="70" required placeholder="Enter age between 18-70">
+                        <div class="input-hint"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="years_experience">Years of Experience</label>
+                        <input type="number" id="years_experience" name="years_experience" min="0" max="50" step="0.5" required placeholder="Total years of work experience">
+                        <div class="input-hint">Total years of work experience</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="education_level">Education Level</label>
+                        <select id="education_level" name="education_level" required>
+                            <option value="">Select Education</option>
+                            <option value="Bachelor's">Bachelor's Degree</option>
+                            <option value="Master's">Master's Degree</option>
+                            <option value="PhD">PhD</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="job_title">Job Title</label>
+                        <input type="text" id="job_title" name="job_title" placeholder="e.g. Software Engineer, Data Analyst, Manager" required>
+                        <div class="input-hint">Enter your current or target job title</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="predict-btn" id="predictBtn">
+                     Predict Salary
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your profile...</p>
+            </div>
+
+            <div class="result-container" id="resultContainer">
+                <h3>Predicted Annual Salary</h3>
+                <div class="salary-amount" id="salaryAmount"></div>
+                <p id="resultMessage"></p>
+            </div>
+
+            <div class="example-section">
+                <h3> Quick Examples</h3>
+                <p style="margin-bottom: 15px; color: #666;">Click on an example to fill the form automatically:</p>
+                <div class="example-buttons">
+                    <button type="button" class="example-btn" onclick="fillExample('junior')">Junior Developer</button>
+                    <button type="button" class="example-btn" onclick="fillExample('senior')">Senior Engineer</button>
+                    <button type="button" class="example-btn" onclick="fillExample('manager')">Product Manager</button>
+                    <button type="button" class="example-btn" onclick="fillExample('director')">Director</button>
+                    <button type="button" class="example-btn" onclick="fillExample('analyst')">Data Analyst</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Example data for quick form filling
+        const examples = {
+            junior: {
+                age: 24,
+                years_experience: 1,
+                gender: 'Male',
+                education_level: "Bachelor's",
+                job_title: 'Junior Software Developer'
+            },
+            senior: {
+                age: 32,
+                years_experience: 8,
+                gender: 'Female',
+                education_level: "Master's",
+                job_title: 'Senior Software Engineer'
+            },
+            manager: {
+                age: 35,
+                years_experience: 10,
+                gender: 'Male',
+                education_level: "Master's",
+                job_title: 'Product Manager'
+            },
+            director: {
+                age: 45,
+                years_experience: 18,
+                gender: 'Female',
+                education_level: 'PhD',
+                job_title: 'Director of Engineering'
+            },
+            analyst: {
+                age: 28,
+                years_experience: 4,
+                gender: 'Female',
+                education_level: "Master's",
+                job_title: 'Data Analyst'
+            }
+        };
+
+        function fillExample(type) {
+            const example = examples[type];
+            if (example) {
+                document.getElementById('age').value = example.age;
+                document.getElementById('years_experience').value = example.years_experience;
+                document.getElementById('gender').value = example.gender;
+                document.getElementById('education_level').value = example.education_level;
+                document.getElementById('job_title').value = example.job_title;
+                
+                // Hide any previous results
+                hideResult();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('predictBtn').disabled = true;
+            document.getElementById('predictBtn').textContent = 'Predicting...';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('predictBtn').disabled = false;
+            document.getElementById('predictBtn').textContent = '🔮 Predict Salary';
+        }
+
+        function showResult(salary, message, isError = false) {
+            const container = document.getElementById('resultContainer');
+            const amountElement = document.getElementById('salaryAmount');
+            const messageElement = document.getElementById('resultMessage');
+            
+            container.className = 'result-container ' + (isError ? 'error' : 'success');
+            
+            if (isError) {
+                amountElement.textContent = '⚠️ Error';
+                messageElement.textContent = message;
+            } else {
+                amountElement.textContent = salary;
+                messageElement.textContent = message;
+            }
+            
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function hideResult() {
+            document.getElementById('resultContainer').style.display = 'none';
+        }
+
+        document.getElementById('salaryForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(this);
+            const data = {
+                age: formData.get('age'),
+                years_experience: formData.get('years_experience'),
+                gender: formData.get('gender'),
+                education_level: formData.get('education_level'),
+                job_title: formData.get('job_title')
+            };
+
+            // Validate form
+            if (!data.age || !data.years_experience || !data.gender || !data.education_level || !data.job_title) {
+                showResult('', 'Please fill in all required fields.', true);
+                return;
+            }
+
+            showLoading();
+            hideResult();
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    const message = `Based on your profile: ${data.age} years old, ${data.years_experience} years experience, ${data.education_level} in ${data.job_title}`;
+                    showResult(result.formatted_salary, message);
+                } else {
+                    showResult('', result.error || 'An error occurred while predicting salary.', true);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showResult('', 'Network error. Please check if the server is running.', true);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Add input validation and formatting
+        document.getElementById('age').addEventListener('input', function() {
+            if (this.value < 18) this.value = 18;
+            if (this.value > 70) this.value = 70;
+        });
+
+        document.getElementById('years_experience').addEventListener('input', function() {
+            if (this.value < 0) this.value = 0;
+            if (this.value > 50) this.value = 50;
+        });
+
+        // Auto-capitalize job title
+        document.getElementById('job_title').addEventListener('input', function() {
+            this.value = this.value.replace(/\b\w/g, l => l.toUpperCase());
+        });
+
+        // Welcome message
+        console.log('🎉 Salary Prediction Tool loaded successfully!');
+        console.log('💡 Tip: Try the quick examples to see how it works.');
+    </script>
+</body>
+</html>

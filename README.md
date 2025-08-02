@@ -1,53 +1,186 @@
-# Salary Prediction Project(Python)
+# Salary Prediction Tool
 
-The purpose of this project is to use data transformation and machine learning to create a model that will predict a salary when given years of experience, job type, college degree, college major, industry, and miles from a metropolis.
+A machine learning-powered web application that predicts salaries based on employee characteristics using ensemble learning models.
 
+## Features
 
-# Methodology
+- **Advanced ML Models**: Uses Random Forest, Gradient Boosting, and Voting Regressor ensemble methods
+- **Web Interface**: Beautiful, responsive HTML/CSS/JS interface
+- **Real-time Predictions**: Instant salary predictions via Flask API
+- **Data Preprocessing**: Handles categorical encoding and feature scaling automatically
+- **Example Profiles**: Quick-fill examples for different job roles
 
- - Data Wrangling - `Removed duplicates and dropped misssing or null values in the dataset.`
- - Exploratory Data Analysis - `Analyzed the data and summarized the main characteristics.`
- - Data Visualization - `Used boxplot, distribution plot, scatter plot, violin plot, residual plot and regression plot to visualize the data and it's characteristics.`
- - Machine Learning Algorithms Used - `Linear Regression, Polynomial Transformation, Ridge Regression and Random Forest`
- - Evaluation Metrics Used - `Mean Squared Error(MSE) and R-squared`
+## Project Structure
 
+```
+salary_predict/
+├── app.py                              # Flask web application
+├── salary_prediction_model.py          # ML model training script
+├── load_salary_data.py                 # Data loading utilities
+├── predict_salary.py                   # Console prediction app
+├── Salary Data.csv                     # Dataset
+├── requirements.txt                     # Python dependencies
+├── templates/
+│   └── index.html                      # Web interface
+└── venv/                               # Virtual environment
+```
 
-# Technologies/Libraries Used
-``` javascript
- - Python 3
- - Jupyter
- - Pandas
- - Numpy
- - Seaborn
- - Matplotlib
- - Scikit-Learn
- - Scipy
- ```
+## Setup Instructions
 
-# Datasets available
+### 1. Activate Virtual Environment
+```bash
+# Windows
+.\venv\Scripts\Activate.ps1
 
-The data for this model is fairly simplified as it has very few missing areas. The raw data consists of a training dataset with the features - jobType, degree, major, industry, yearsExperience and milesFromMetropolis and their corresponding salaries. Twenty percent of this training dataset was split into a test dataset with corresponding salaries.
+# Check activation
+(venv) should appear in your prompt
+```
 
-There is also a testing dataset that does not have any salary information available and was used as a substitute for real-world data and used the model to predict it's values/salaries. 
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-## Information Used to Predict Salaries
+### 3. Train the Model (First Time Only)
+```bash
+python salary_prediction_model.py
+```
 
--   **Years Experience:**  How many years of experience
--   **Job Type:**  The position held (CEO, CFO, CTO, Vice President, Manager, Janitor, and senior or junior position)
--   **College Degree:**  Doctoral, Masters, Bachelors, High School, or None
--   **College Major:**  Biology, Business, Chemistry, Computer Science, Engineering, Literature, Math, Physics, or None
--   **Industry:**  Auto, Education, Finance, Health, Oil, Service, or Web
--   **Miles From Metropolis:**  How many miles away from a major city
+This will:
+- Load and preprocess the salary dataset
+- Train ensemble models (Random Forest, Gradient Boosting, Voting Regressor)
+- Evaluate model performance
+- Save the best model (Voting Regressor) to disk
 
+### 4. Run the Web Application
+```bash
+python app.py
+```
 
-# Summary
+The application will start on `http://localhost:5000`
 
-*Applying second order polynomial transformation to the features led to the most accurate predictions with the least error when using a linear regression model. The result was a **mean squared error of 354** with a **76% accuracy rate**.<br>
-This model can be used as a guide when determining salaries since it leads to reasonable predictions when given information on years of experience, miles from metropolis, job type, industry, and college degree and major.*
+## Usage
 
+### Web Interface
+1. Open your browser and go to `http://localhost:5000`
+2. Fill in the employee details:
+   - **Age**: 18-70 years
+   - **Years of Experience**: 0-50 years
+   - **Gender**: Male/Female
+   - **Education Level**: Bachelor's, Master's, or PhD
+   - **Job Title**: Any job title (e.g., Software Engineer, Data Analyst)
+3. Click "Predict Salary" to get the prediction
+4. Use the quick examples for testing different profiles
 
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbNjQyMTcxNTIwLDE0NTUyNzg1NDEsMjEzNT
-A2NjIxNywxMzA0MDczNjI1LDc0ODUzNzA4MSwtMTA5MzMwNzY5
-OSwxNjczNjEwMTYzXX0=
--->
+### Console Application
+```bash
+python predict_salary.py
+```
+
+## Model Performance
+
+The trained ensemble model achieves:
+- **Test R² Score**: ~0.89 (89% variance explained)
+- **Test MAE**: ~$10,261 (Mean Absolute Error)
+- **Test RMSE**: ~$15,881 (Root Mean Square Error)
+
+## Technical Details
+
+### Data Preprocessing
+- **Missing Values**: Handled by dropping rows (< 10% missing data)
+- **Feature Encoding**: One-hot encoding for categorical variables
+- **Feature Scaling**: StandardScaler for numerical features
+- **Train/Test Split**: 80/20 split with stratification
+
+### Machine Learning Models
+1. **Random Forest Regressor**
+   - 100 estimators, max_depth=10
+   - Handles non-linear relationships well
+   
+2. **Gradient Boosting Regressor**
+   - 100 estimators, learning_rate=0.1
+   - Sequential improvement approach
+   
+3. **Voting Regressor** ⭐ (Best Model)
+   - Combines RF and GB predictions
+   - Averages predictions for better accuracy
+
+### Features Used
+- Age (numerical)
+- Years of Experience (numerical)
+- Gender (categorical)
+- Education Level (categorical)
+- Job Title (categorical)
+
+## API Endpoints
+
+### GET `/`
+Returns the main web interface
+
+### POST `/predict`
+Predicts salary based on input features
+
+**Request Body:**
+```json
+{
+    "age": 30,
+    "years_experience": 5,
+    "gender": "Male",
+    "education_level": "Master's",
+    "job_title": "Software Engineer"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "predicted_salary": 95000.50,
+    "formatted_salary": "$95,000.50"
+}
+```
+
+### GET `/health`
+Health check endpoint
+
+## Example Predictions
+
+| Profile | Predicted Salary |
+|---------|------------------|
+| Junior Developer (24, 1 year, Bachelor's) | ~$55,000 |
+| Senior Engineer (32, 8 years, Master's) | ~$120,000 |
+| Product Manager (35, 10 years, Master's) | ~$135,000 |
+| Director (45, 18 years, PhD) | ~$180,000 |
+
+## Troubleshooting
+
+### Model Not Found Error
+If you see "Model files not found", run the training script first:
+```bash
+python salary_prediction_model.py
+```
+
+### Port Already in Use
+Change the port in `app.py`:
+```python
+app.run(debug=True, host='0.0.0.0', port=5001)  # Use different port
+```
+
+### Virtual Environment Issues
+Ensure you're in the correct directory and the virtual environment is activated:
+```bash
+cd c:\Users\Lenovo\PycharmProjects\salary_predict
+.\venv\Scripts\Activate.ps1
+```
+
+## Future Enhancements
+
+- [ ] Add more features (location, company size, industry)
+- [ ] Implement model retraining capabilities
+- [ ] Add data visualization dashboard
+- [ ] Include confidence intervals for predictions
+- [ ] Deploy to cloud platform (AWS, Azure, Heroku)
+
+## License
+
+This project is for educational purposes.
